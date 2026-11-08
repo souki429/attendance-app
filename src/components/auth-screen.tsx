@@ -19,7 +19,13 @@ export function AuthScreen() {
       const { error, data } = mode === 'signup'
         ? await supabase.auth.signUp({ email, password })
         : await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
+      if (error) {
+        if (mode === 'login') {
+          setMessage('ログインに失敗しました')
+          return
+        }
+        throw error
+      }
       if (mode === 'signup' && !data.session) setMessage('確認メールを送信しました。メール内のリンクから登録を完了してください。')
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '認証に失敗しました。')
@@ -44,7 +50,7 @@ export function AuthScreen() {
             パスワード
             <input className="flex h-11 w-full rounded-md border bg-background px-3 text-base" type="password" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={6} required value={password} onChange={event => setPassword(event.target.value)} />
           </label>
-          {message && <p role="status" className="text-sm text-muted-foreground">{message}</p>}
+          {message && <p role={mode === 'login' ? 'alert' : 'status'} className={`text-sm ${mode === 'login' ? 'text-destructive' : 'text-muted-foreground'}`}>{message}</p>}
           <Button type="submit" disabled={busy} className="w-full">{busy ? '処理中…' : mode === 'login' ? 'ログイン' : '登録する'}</Button>
           <button type="button" className="min-h-11 w-full text-sm underline underline-offset-4" onClick={() => { setMode(mode === 'login' ? 'signup' : 'login'); setMessage('') }}>
             {mode === 'login' ? 'アカウントをお持ちでない方は新規登録' : 'アカウントをお持ちの方はログイン'}
